@@ -7,10 +7,11 @@ import (
 	"net/http"
 )
 
-func Autentica(nextFunc http.HandlerFunc) http.HandlerFunc {
+func Autenticar(nextFunc http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if erro := authorization.ValidarToken(r); erro != nil {
 			responses.Erro(w, http.StatusUnauthorized, erro)
+			return
 		}
 		nextFunc(w, r)
 	}

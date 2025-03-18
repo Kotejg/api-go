@@ -133,3 +133,121 @@ func (repo *usuarios) BuscarPorEmail(email string) (models.Usuario, error) {
 	return u, nil
 
 }
+
+// seguir realizar o ate de um usuario seguir outro
+func (repo *usuarios) Seguir(IDToken, IDSeguidor uint64) error {
+	statement, err := repo.db.Prepare(
+		"insert ignore into seguidores (usuario_id, seguidor_id) values (?,?) ",
+	)
+	if err != nil {
+		return err
+	}
+	defer statement.Close()
+
+	if _, err = statement.Exec(IDToken, IDSeguidor); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (repo *usuarios) PararDeSeguir(IDToken, IDSeguidor uint64) error {
+	statement, err := repo.db.Prepare(
+		"delete from seguidores where usuario_id = ? and seguidor_id = ?",
+	)
+	if err != nil {
+		return err
+	}
+	defer statement.Close()
+	if _, err = statement.Exec(IDToken, IDSeguidor); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (repo *usuarios) BuscarSeguidores(usuarioID int) ([]models.Usuario, error) {
+	var usuarios []models.Usuario
+
+	statement, err := repo.db.Prepare(
+		`select u.id, u.nome, u.nick, u.email, u.criadoEm
+					from usuarios u 
+				inner join seguidores s on u.id = s.seguidor_id 
+					where s.usuario_id = ?`,
+	)
+	if err != nil {
+		return usuarios, err
+	}
+	defer statement.Close()
+	rows, err := statement.Query(usuarioID)
+	if err != nil {
+		return usuarios, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var u models.Usuario
+		if err = rows.Scan(&u.ID, &u.Nome, &u.Nick, &u.Email, &u.CriadoEm); err != nil {
+			return usuarios, err
+		}
+		usuarios = append(usuarios, u)
+	}
+	return usuarios, nil
+}
+
+func (repo *usuarios) BuscarSeguindo(usuarioID int) ([]models.Usuario, error) {
+	var usuarios []models.Usuario
+
+	statement, err := repo.db.Prepare(
+		`select u.id, u.nome, u.nick, u.email, u.criadoEm
+					from usuarios u 
+				inner join seguidores s on u.id = s.usuario_id 
+					where s.seguidor_id = ?`,
+	)
+	if err != nil {
+		return usuarios, err
+	}
+	defer statement.Close()
+	rows, err := statement.Query(usuarioID)
+	if err != nil {
+		return usuarios, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var u models.Usuario
+		if err = rows.Scan(&u.ID, &u.Nome, &u.Nick, &u.Email, &u.CriadoEm); err != nil {
+			return usuarios, err
+		}
+		usuarios = append(usuarios, u)
+	}
+	return usuarios, nil
+}
+
+func (repo *usuarios) BuscarSenhaPorID(UsuarioID int) (string, error) {
+	row, err := repo.db.Query(`
+	select senha from usuarios where id = ?
+	`, UsuarioID)
+	if err != nil {
+		return "", err
+	}
+	defer row.Close()
+
+	var u models.Usuario
+
+	if row.Next() {
+		if err = row.Scan(&u.Senha); err != nil {
+			return "", err
+		}
+	}
+	return u.Senha, nil
+}
+
+func (repo *usuarios) AtualizarSenha(usuarioID int, hash string) error {
+	stt, err := repo.db.Query(`
+	update usuarios set senha = ? where id = ?
+	`, hash, usuarioID)
+	if err != nil {
+		return err
+	}
+	defer stt.Close()
+
+	return nil
+
+}

@@ -22,7 +22,7 @@ func Configurar(mux *mux.Router) *mux.Router {
 	for _, rota := range rotas {
 		if rota.RequerAutenticacao {
 			mux.HandleFunc(rota.URI,
-				middlewares.Logger(middlewares.Autentica(rota.Funcao)),
+				middlewares.Logger(middlewares.Autenticar(rota.Funcao)),
 			).Methods(rota.Metodo)
 		} else {
 			mux.HandleFunc(rota.URI, middlewares.Logger(rota.Funcao)).Methods(rota.Metodo)
