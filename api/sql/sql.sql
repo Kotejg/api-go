@@ -30,3 +30,14 @@ create table seguidores (
                                 on delete cascade
 )
 
+create table publicacoes (
+                             Id int not null,
+                             titulo varchar(50) not null,
+                             conteudo varchar(300) not null,
+                             autor_id int not null,
+                             curtidas int default 0,
+                             criadaEm timestamp default current_timestamp,
+                             primary key (Id),
+                             foreign key (autor_id) references usuarios(id) on delete cascade
+)
+

@@ -18,6 +18,7 @@ type Rota struct {
 func Configurar(mux *mux.Router) *mux.Router {
 	rotas := rotasUsuarios
 	rotas = append(rotas, rotaLogin)
+	rotas = append(rotas, rotasPublicacoes...)
 
 	for _, rota := range rotas {
 		if rota.RequerAutenticacao {
@@ -27,8 +28,6 @@ func Configurar(mux *mux.Router) *mux.Router {
 		} else {
 			mux.HandleFunc(rota.URI, middlewares.Logger(rota.Funcao)).Methods(rota.Metodo)
 		}
-
 	}
-
 	return mux
 }
